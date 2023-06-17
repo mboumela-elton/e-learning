@@ -21,7 +21,7 @@ public class Admin {
 		return password;
 	}
 
-	public static long getAdminid() {
+	public static long getAdminId() {
 		return adminId;
 	}
 

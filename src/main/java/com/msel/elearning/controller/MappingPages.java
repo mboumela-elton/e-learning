@@ -4,17 +4,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 
-import com.msel.elearning.model.Admin;
-import com.msel.elearning.model.Teacher;
-import com.msel.elearning.model.User;
 import com.msel.elearning.service.FolderService;
 import com.msel.elearning.service.TeacherService;
 import com.msel.elearning.service.UserService;
+import com.msel.elearning.model.Admin;
+import com.msel.elearning.model.Teacher;
+import com.msel.elearning.model.User;
+import com.msel.elearning.controller.FolderController;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 @Controller
@@ -29,6 +30,8 @@ public class MappingPages {
 	@Autowired
 	FolderService folderService;
 	
+	private static Long currentUserId  = null;
+	
 	String nomUtilisateur = new String();
 	
 	@GetMapping("/index")
@@ -37,8 +40,20 @@ public class MappingPages {
 	}
 	
 	@GetMapping("/se_deconnecter")
-	public String seDeconnecter() {
-		return "se_deconnecter";
+	public String seDeconnecter(HttpServletRequest request, HttpServletResponse response) {
+		Cookie[] cookies = request.getCookies();
+		String userType = "";
+		
+		for(Cookie cookie : cookies) {
+			if (cookie.getName().equals("userId") || cookie.getName().equals("teacherId") || cookie.getName().equals("adminId")) {
+				userType = cookie.getName();
+			}
+		}
+		Cookie cookie = new Cookie(userType, "");
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
+		currentUserId = null;
+		return "redirect:/index";
 	}
 	
 	@GetMapping("/en_savoir_plus")
@@ -75,51 +90,87 @@ public class MappingPages {
 
 	@GetMapping("/acceuil_admin_eleve")
 	public String acceuilAdminEleve(Model model) {
-		Iterable<User> users = userService.getUsers();
-		model.addAttribute("users", users);
-		return "pages_admin/acceuil_admin_eleve";
+		if (currentUserId != null && currentUserId == Admin.getAdminId()) {
+			Iterable<User> users = userService.getUsers();
+			model.addAttribute("users", users);
+			return "pages_admin/acceuil_admin_eleve";
+		} else {
+			return "redirect:/";
+		}
 	}
 	
 	@GetMapping("/acceuil_admin_enseignant")
 	public String acceuilAdminEnseignant(Model model) {
-		(new TeacherController()).createTeacher(model);
-		Iterable<Teacher> teachers = teacherService.getTeachers();
-		model.addAttribute("teachers", teachers);
-		return "/pages_admin/acceuil_admin_enseignant";
+		if (currentUserId != null && currentUserId == Admin.getAdminId()) {
+			(new TeacherController()).createTeacher(model);
+			Iterable<Teacher> teachers = teacherService.getTeachers();
+			model.addAttribute("teachers", teachers);
+			return "/pages_admin/acceuil_admin_enseignant";
+		}else {
+			return "redirect:/";
+		}
 	}
 	
 	@GetMapping("/parcourirAdmin")
 	public String parcourirAdmin(Model model) {
-		if (FolderController.ouvrir.equals("")) {
-			FolderController.path = FolderController.ouvrir;
+		if (currentUserId != null && currentUserId == Admin.getAdminId()) {
+			if (FolderController.ouvrir.equals("")) {
+				FolderController.path = FolderController.ouvrir;
+			}
+			model.addAttribute("folders", folderService.getFolders(FolderController.ouvrir));
+			model.addAttribute("PDFs", folderService.getPDFs(FolderController.ouvrir));
+			model.addAttribute("videos", folderService.getVideos(FolderController.ouvrir));
+			model.addAttribute("path", FolderController.ouvrir);
+			FolderController.ouvrir = "";
+			return "pages_admin/parcourir";
+		}else {
+			return "redirect:/";
 		}
-		model.addAttribute("folders", folderService.getFolders(FolderController.ouvrir));
-		model.addAttribute("PDFs", folderService.getPDFs(FolderController.ouvrir));
-		model.addAttribute("videos", folderService.getVideos(FolderController.ouvrir));
-		model.addAttribute("path", FolderController.ouvrir);
-		FolderController.ouvrir = "";
-		return "pages_admin/parcourir";
 	}
 	
 	@GetMapping("/profilAdmin")
 	public String profilAdmin() {
-		return "pages_admin/profil";
+		if (currentUserId != null && currentUserId == Admin.getAdminId()) {
+			return "pages_admin/profil";
+		} else {
+			return "redirect:/";
+		}
 	}
 	
 	// pour les pages enseignants
 	@GetMapping("/acceuil_enseignant")
 	public String acceuiEnseignant() {
-		return "pages_enseignant/acceuil_enseignant";
+		if (currentUserId != null && (currentUserId == Admin.getAdminId() || teacherService.getTeacher(currentUserId).isPresent())) {
+			return "pages_enseignant/acceuil_enseignant";
+		}else {
+			return "redirect:/";
+		}
 	}
 	
 	@GetMapping("/parcourirEns")
-	public String parcoursEns() {
-		return "pages_enseignant/parcourir";
+	public String parcoursEns(Model model) {
+		if (currentUserId != null && (currentUserId == Admin.getAdminId() || teacherService.getTeacher(currentUserId).isPresent())) {
+			if (FolderController.ouvrir.equals("")) {
+				FolderController.path = FolderController.ouvrir;
+			}
+			model.addAttribute("folders", folderService.getFolders(FolderController.ouvrir));
+			model.addAttribute("PDFs", folderService.getPDFs(FolderController.ouvrir));
+			model.addAttribute("videos", folderService.getVideos(FolderController.ouvrir));
+			model.addAttribute("path", FolderController.ouvrir);
+			FolderController.ouvrir = "";
+			return "pages_enseignant/parcourir";
+		}else {
+			return "redirect:/";
+		}
 	}
 	
 	@GetMapping("/profilEns")
 	public String profilEns() {
-		return "pages_enseignant/profil";
+		if (currentUserId != null && (currentUserId == Admin.getAdminId() || teacherService.getTeacher(currentUserId).isPresent())) {
+			return "pages_enseignant/profil";
+		}else {
+			return "redirect:/";
+		}
 	}
 	
 	
@@ -128,9 +179,8 @@ public class MappingPages {
 		//ici on met tout ce qui doit être opérationnel au lancement de l'application
 		
 		
-	    // Récupère le cookie "userId"
+	    // Récupère le cookie
 	    Cookie[] cookies = request.getCookies();
-	    Long currentUserId = null;
 	    
 	    if (cookies != null) {
 	        for (Cookie cookie : cookies) {
@@ -169,7 +219,7 @@ public class MappingPages {
 
 		        return "redirect:/acceuil_enseignant";
 			
-			}else {
+			}else if(currentUserId == Admin.getAdminId()) {
 				nomUtilisateur = Admin.getName();
 		        model.addAttribute("nomUtilisateur", nomUtilisateur);
 
@@ -182,6 +232,7 @@ public class MappingPages {
 	        // Redirige l'utilisateur vers la page de connexion
 	    	return "redirect:/index";
 	    }
+	    return "redirect:/index";
 	}
 	
 

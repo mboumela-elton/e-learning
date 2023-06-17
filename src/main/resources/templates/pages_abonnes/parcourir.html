@@ -9,10 +9,6 @@
 </head>
 <body>
     <div id="conteneur_video" style="display: none;">
-        <video controls>
-            <source src="" type="video/mp4">
-            Une Erreur s'est produite. ou votre navigateur ne supporte pas le format de video !
-        </video>
         <div id = "block_fermer_telecharger">
             <a id = "button_telecharger_video" href="" download="fichier.mp4">
                 télecharger
@@ -109,8 +105,7 @@
                                 <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z"></path>
                                 <path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293l6-6Z"></path>
                             </svg>
-                            <a href="dossier.html?section=secondaire"> / Secondaire</a>
-                            <a href="dossier.html?section=secondaire"> / Francophone</a>
+                            <a href="dossier.html?section=secondaire" id = "arborescence" th:text="${path}"></a>
                         </div>
                         <hr class = "hr_aside">
                         <div id="actions_de_parcourir">
@@ -120,32 +115,51 @@
                         </div>
                     </div>
                     <div id = "conteneur_cours_partage_parcourir">
+						<!-- DOSSIER -->
+                        <div th:each="folder : ${folders}" class="fichier_ou_dossier" id ="element1">
+                            <div class = "block_svg_nom_folder_ou_fichier">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="svg_dossier" viewBox="0 0 16 16">
+                                    <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"/>
+                                </svg>
+                                <p th:text="${folder.name}" ondblclick="ouvrirDossier()" class="nom_dossier_fichier"></p>
+                            </div>
+                            <p class = "date_element" th:text="${folder.modified}"></p>
+                            <p class = "poinds_fichier"></p>
+                            <div class = "block_actions"></div>
+                      	</div>
+                        
+                        <!-- VIDEO -->
+                        <div th:each="video : ${videos}" class="fichier_ou_dossier" id ="element2"><!--  Le  parametre doit être un lien vers la video -->
+                            <div class = "block_svg_nom_folder_ou_fichier">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="svg_video" viewBox="0 0 16 16">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/>
+                                </svg>
+                                <p th:text="${video.name}" class="nom_dossier_fichier" ondblclick="openVideo()"></p>
+                        	</div>
+                        	<div class = "container_fermer_video" style ="display: none;">
+								<button class = "clause_video" onclick="clauseVideo()">fermer</button>
+							</div>
+                        	<video controls style = "display: none;">
+					            <source th:src="@{${video.path1}}" type="video/mp4">
+					            Une Erreur s'est produite. ou votre navigateur ne supporte pas le format de video !
+					        </video>
+					        
+                            <p class = "date_element" th:text="${video.modified}"></p>
+                            <p class = "poinds_fichier"th:text="${video.size} + ' Ko'"></p>
+                        </div>
+						
                         <!-- PDF -->
                         <div th:each="PDF : ${PDFs}" class="fichier_ou_dossier" id ="element2"  ondblclick="openPDF('')"> <!-- Le  parametre doit être un lien vers le PDF-->
                             <div class = "block_svg_nom_folder_ou_fichier">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="svg_pdf" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5L14 4.5ZM1.6 11.85H0v3.999h.791v-1.342h.803c.287 0 .531-.057.732-.173.203-.117.358-.275.463-.474a1.42 1.42 0 0 0 .161-.677c0-.25-.053-.476-.158-.677a1.176 1.176 0 0 0-.46-.477c-.2-.12-.443-.179-.732-.179Zm.545 1.333a.795.795 0 0 1-.085.38.574.574 0 0 1-.238.241.794.794 0 0 1-.375.082H.788V12.48h.66c.218 0 .389.06.512.181.123.122.185.296.185.522Zm1.217-1.333v3.999h1.46c.401 0 .734-.08.998-.237a1.45 1.45 0 0 0 .595-.689c.13-.3.196-.662.196-1.084 0-.42-.065-.778-.196-1.075a1.426 1.426 0 0 0-.589-.68c-.264-.156-.599-.234-1.005-.234H3.362Zm.791.645h.563c.248 0 .45.05.609.152a.89.89 0 0 1 .354.454c.079.201.118.452.118.753a2.3 2.3 0 0 1-.068.592 1.14 1.14 0 0 1-.196.422.8.8 0 0 1-.334.252 1.298 1.298 0 0 1-.483.082h-.563v-2.707Zm3.743 1.763v1.591h-.79V11.85h2.548v.653H7.896v1.117h1.606v.638H7.896Z"/>
                                 </svg>
-                                <a th:href="@{/openFile(filename=${PDF.name}, contentType='application/pdf')}">
+                                <a th:href="@{'/pdf/'+${PDF.name}}" target="_blank">
                                 	<p th:text="${PDF.name}" class="nom_dossier_fichier"></p>
                                 </a>
                             </div>
                             <p class = "date_element" th:text="${PDF.modified}"></p>
                             <p class = "poinds_fichier" th:text="${PDF.size} + ' Ko'"></p>
-                        </div>
-                        
-                        <!-- VIDEO -->
-                        <div th:each="video : ${videos}" class="fichier_ou_dossier" id ="element2" ondblclick="togleVideo('')"><!-- Le  parametre doit être un lien vers la video -->
-                            <div class = "block_svg_nom_folder_ou_fichier">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="svg_video" viewBox="0 0 16 16">
-                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/>
-                                </svg>
-                                <a th:href="@{/openFile(filename=${video.name}, contentType='video/mp4')}">
-                                	<p th:text="${video.name}" class="nom_dossier_fichier"></p>
-                                </a>
-                        </div>
-                            <p class = "date_element" th:text="${video.modified}"></p>
-                            <p class = "poinds_fichier"th:text="${video.size} + ' Ko'"></p>
                         </div>
                     </div>
                     <section class="vh-100" id = "section_formulaire_inscription" style = "display: none;">
@@ -236,16 +250,27 @@
         </a>
     </div>
     <script>
-        const telechargerVideo = document.getElementById("button_telecharger_video");
-        const conteneurVideo = document.getElementById('conteneur_video');
-        const source = document.querySelector("video source");
-        const video = document.querySelector("video");
-        function togleVideo(lien){
-            source.src = lien;
-            telechargerVideo.href= lien;
-            video.load();
-            conteneurVideo.style.display = "grid";
+		var arborescence = document.getElementById("arborescence").textContent;
+		console.log(arborescence);
+		function ouvrirDossier(){
+			arborescence = arborescence+ '/' + event.target.textContent;
+			console.log(arborescence);
+			window.location.href = "parcourirAbonneouvrir?ouvrir=" + arborescence; 
+		}
+        function openVideo(){
+			let video = event.target.parentNode.nextElementSibling.nextElementSibling;
+			let containerFermerVideo = event.target.parentNode.nextElementSibling;
+			containerFermerVideo.style.display = "grid";
+			video.style.display = 'grid';
+			video.play();
         }
+        function clauseVideo(){
+			let video = event.target.parentNode.nextElementSibling;
+			let containerFermerVideo = event.target.parentNode
+			video.pause();
+			video.style.display = 'none';
+			containerFermerVideo.style.display = "none";
+		}
         function togleGridVideoDisplay(){
             source.src = "";
             telechargerVideo.href= "";

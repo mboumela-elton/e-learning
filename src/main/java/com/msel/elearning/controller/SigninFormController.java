@@ -109,7 +109,7 @@ public class SigninFormController {
 				}else if(a==2) {
 					cookie = new Cookie("teacherId", Long.toString(teacherService.findTeacherByEmail(signinForm.getEmail()).get().getTeacherId()));
 				}else {
-					cookie = new Cookie("adminId", Long.toString(Admin.getAdminid()));
+					cookie = new Cookie("adminId", Long.toString(Admin.getAdminId()));
 				}
 	            
 	            // Définit la durée de vie du cookie à 30 jours

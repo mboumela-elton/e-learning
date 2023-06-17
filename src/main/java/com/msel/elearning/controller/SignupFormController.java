@@ -11,6 +11,8 @@ import com.msel.elearning.model.SignupForm;
 import com.msel.elearning.service.SignupFormService;
 import com.msel.elearning.service.UserService;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @Controller
@@ -27,7 +29,7 @@ public class SignupFormController {
     }
 
     @PostMapping("/signup")
-    public String submitSignupForm(@Valid SignupForm signupForm, BindingResult bindingResult) {
+    public String submitSignupForm(@Valid SignupForm signupForm, BindingResult bindingResult, HttpServletResponse response) {
         if (bindingResult.hasErrors()) {
             return "signup-error";
         }
@@ -42,7 +44,17 @@ public class SignupFormController {
 			return "signup-error";
 		}
       
+        
         userService.saveUser(userService.buildUser(signupForm));
+
+        Cookie cookie = new Cookie("userId", Long.toString(userService.findUserByEmail(signupForm.getEmail()).get().getUserId()));
+        
+        // Définit la durée de vie du cookie à 30 jours
+        cookie.setMaxAge(24 * 60 * 60);
+
+        // Ajoute le cookie à la réponse HTTP
+        response.addCookie(cookie);
+        
         return "pages_abonnes/acceuil_abonne";
     }
 }

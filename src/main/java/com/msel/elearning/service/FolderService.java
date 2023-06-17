@@ -1,16 +1,8 @@
 package com.msel.elearning.service;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.msel.elearning.model.Folder;
@@ -18,7 +10,6 @@ import com.msel.elearning.model.MyFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,18 +20,22 @@ import java.util.List;
 @Service
 public class FolderService {
 
-    public static String rootFolderPath;
-
+    public String rootFolderPath;
+    
     // Constructor that takes the root folder path as a parameter
-    @Autowired
-    public FolderService(@Value("${root.folder}") String rootFolderPath) {
-        this.rootFolderPath = rootFolderPath;
+    public FolderService(@Value("${root.folder}") String rootFolderPath, @Value("${folder.name}") String rootFolder) {
+    	ClassLoader classLoader = getClass().getClassLoader();
+    	File file = new File(classLoader.getResource(rootFolderPath).getFile());
+    	
+    	this.rootFolderPath = file.getAbsolutePath();
+    	
     }
 
     // Returns a list of all folders in the root directory
     public List<Folder> getFolders(String path) {
         List<Folder> folders = new ArrayList<>();
         File rootFolder = new File(rootFolderPath, path);
+        
         if (rootFolder.exists() && rootFolder.isDirectory()) {
             for (File file : rootFolder.listFiles()) {
                 if (file.isDirectory()) {
@@ -145,7 +140,7 @@ public class FolderService {
     }
     public static boolean isVideo(File file) {
         String name = file.getName().toLowerCase();
-        return name.endsWith(".mp4") || name.endsWith(".avi") || name.endsWith(".mkv");
+        return name.endsWith(".mp4");
     }
     
     public static boolean isPDF(File file) {
@@ -157,7 +152,7 @@ public class FolderService {
     public void FileUploader(MultipartFile file, String path) {
 		try {
 	        Path sourcePath = Paths.get(file.getOriginalFilename());
-	        Path targetPath = Paths.get(rootFolderPath + path+ File.separator +file.getOriginalFilename());
+	        Path targetPath = Paths.get(rootFolderPath+ path+ File.separator +file.getOriginalFilename());
 	        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 	    } catch (IOException e) {
 	        e.printStackTrace();
