@@ -105,7 +105,7 @@ public class MappingPages {
 			(new TeacherController()).createTeacher(model);
 			Iterable<Teacher> teachers = teacherService.getTeachers();
 			model.addAttribute("teachers", teachers);
-			return "/pages_admin/acceuil_admin_enseignant";
+			return "pages_admin/acceuil_admin_enseignant";
 		}else {
 			return "redirect:/";
 		}
@@ -226,12 +226,8 @@ public class MappingPages {
 		        return "redirect:/acceuil_admin_enseignant";
 			}
 
-	    } else {
-	    	
-	    	model.addAttribute("nomUtilisateur", nomUtilisateur);
-	        // Redirige l'utilisateur vers la page de connexion
-	    	return "redirect:/index";
 	    }
+	    
 	    return "redirect:/index";
 	}
 	
